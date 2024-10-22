@@ -5,7 +5,7 @@ import pyperclip
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 
-#Password Generator Project
+# Password Generator Project
 def generate_password():
     letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
@@ -22,6 +22,9 @@ def generate_password():
     password_entry.insert(0, password)
     pyperclip.copy(password)
 
+    # Evaluate password strength and provide feedback
+    strength = evaluate_password_strength(password)
+    strength_label.config(text=f"Password Strength: {strength}")
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save():
 
@@ -40,7 +43,36 @@ def save():
                 website_entry.delete(0, END)
                 password_entry.delete(0, END)
 
+ # ---------------------------- STRENGTH EVALUATION ------------------------------- #
+def evaluate_password_strength(password):
+    """Evaluates password strength based on length, character variety, and complexity."""
 
+    # Minimum length requirement
+    if len(password) < 8:
+        return "Weak"
+
+    # Check for character variety
+    has_uppercase = any(c.isupper() for c in password)
+    has_lowercase = any(c.islower() for c in password)
+    has_digit = any(c.isdigit() for c in password)
+    has_special_char = any(not c.isalnum() for c in password)
+
+
+    # Ensure at least one of the character types is present
+    if not (has_uppercase or has_lowercase or has_digit or has_special_char):
+        return "Weak"
+
+    # If all character types are present, it's strong
+    if all([has_uppercase, has_lowercase, has_digit, has_special_char]):
+        return "Strong"
+
+    return "Medium"
+
+def evaluate_and_update_strength():
+    """Evaluates the password strength and updates the strength label."""
+    password = password_entry.get()
+    strength = evaluate_password_strength(password)
+    strength_label.config(text=f"Password Strength: {strength}")
 # ---------------------------- UI SETUP ------------------------------- #
 
 window = Tk()
@@ -60,15 +92,26 @@ email_label.grid(row=2, column=0)
 password_label = Label(text="Password:")
 password_label.grid(row=3, column=0)
 
+
+strength_label = Label(text="Password Strength:")
+strength_label.grid(row=4, column=0)
+
+
 #Entries
 website_entry = Entry(width=35)
 website_entry.grid(row=1, column=1, columnspan=2)
 website_entry.focus()
 email_entry = Entry(width=35)
 email_entry.grid(row=2, column=1, columnspan=2)
-email_entry.insert(0, "mrsymtec@gmail.com")
+email_entry.insert(0, "")
 password_entry = Entry(width=21)
 password_entry.grid(row=3, column=1)
+
+
+# Bind
+ #the function to the password entry's '<<Modified>>' event
+password_entry.bind('<<Modified>>', evaluate_and_update_strength())
+
 
 # Buttons
 generate_password_button = Button(text="Generate Password", command=generate_password)
