@@ -1,4 +1,4 @@
-# MyPass
+# MandS Passwords
 Stand alone password manager that generates a secure password for you and saves it to a local file.
 Once the password is generated it is sent directly to the computers clipboard for pasting into the password field 
 in the site you are registering for or loggin into. 
