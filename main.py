@@ -90,6 +90,15 @@ def delete_password():
     else:
         messagebox.showinfo(title="No Data", message="No passwords saved yet.")
 
+# ---------------------------- TOGGLE PASSWORD VISIBILITY ------------------------------- #
+def toggle_password_visibility():
+    """Toggles the password between hidden and visible states."""
+    if show_password_var.get():
+        password_entry.config(show="")
+    else:
+        password_entry.config(show="*")
+
+
 # ---------------------------- STRENGTH EVALUATION ------------------------------- #
 def evaluate_password_strength(password):
     """Evaluates password strength based on length, character variety, and complexity."""
@@ -145,15 +154,20 @@ website_entry.focus()
 email_entry = Entry(width=35)
 email_entry.grid(row=2, column=1, columnspan=2)
 email_entry.insert(0, "")
-password_entry = Entry(width=21)
+password_entry = Entry(width=21, show="*")
 password_entry.grid(row=3, column=1)
 
 # Bind the function to the password entry's '<KeyRelease>' event
 password_entry.bind('<KeyRelease>', lambda event: evaluate_and_update_strength())
 
+# Checkbox to show/hide password
+show_password_var = BooleanVar()
+show_password_checkbox = Checkbutton(text="Show Password", variable=show_password_var, command=toggle_password_visibility)
+show_password_checkbox.grid(row=3, column=2)
+
 # Buttons
 generate_password_button = Button(text="Generate Password", command=generate_password)
-generate_password_button.grid(row=3, column=2)
+generate_password_button.grid(row=3, column=2,)
 add_button = Button(text="Add", width=36, command=save)
 add_button.grid(row=4, column=1, columnspan=2)
 
