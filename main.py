@@ -7,8 +7,6 @@ import os
 # Fixed username and password
 USERNAME = "test"
 PASSWORD = "test"
-
-# File to save username and password
 LOGIN_FILE = "up.txt"
 TIMEOUT_SECONDS = 300  # 5 minutes in seconds
 
@@ -25,22 +23,18 @@ def timeout():
 
 # ---------------------------- LOGIN FUNCTION ------------------------------- #
 def login():
-    # Check if the login file exists; if not, create it with default credentials
     if not os.path.exists(LOGIN_FILE):
         with open(LOGIN_FILE, "w") as file:
             file.write(f"{USERNAME}\n{PASSWORD}")
 
-    # Set up the login window
     login_window = Toplevel()
     login_window.title("Login")
     login_window.geometry("300x200")
 
-    # Username entry
     Label(login_window, text="Enter Username:").pack(pady=5)
     entered_username = Entry(login_window, width=50)
     entered_username.pack(pady=5)
 
-    # Password entry
     Label(login_window, text="Enter Password:").pack(pady=5)
     entered_password = Entry(login_window, width=50, show="*")
     entered_password.pack(pady=5)
@@ -48,21 +42,20 @@ def login():
     def submit_login():
         if entered_username.get() == USERNAME and entered_password.get() == PASSWORD:
             messagebox.showinfo("Login Success", "Welcome to the Password Manager!")
-            login_window.destroy()  # Close login window
-            window.deiconify()      # Show the main window
+            login_window.destroy()
+            window.deiconify()
+            reset_timer()  # Start the timeout countdown after login
         else:
             messagebox.showerror("Login Failed", "Invalid username or password.")
-            login_window.quit()
 
-    # Login button
     login_button = Button(login_window, text="Login", command=submit_login)
     login_button.pack(pady=10)
 
     login_window.mainloop()
 
-
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 def generate_password():
+    reset_timer()  # Reset timer with each user action
     letters = [chr(i) for i in range(97, 123)] + [chr(i).upper() for i in range(97, 123)]
     numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     symbols = ['!', '#', '$', '%', '&', '(', ')', '*', '+']
@@ -79,9 +72,9 @@ def generate_password():
     strength = evaluate_password_strength(password)
     strength_label.config(text=f"Password Strength: {strength}")
 
-
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save():
+    reset_timer()
     website = website_entry.get()
     email = email_entry.get()
     password = password_entry.get()
@@ -97,20 +90,69 @@ def save():
                 password_entry.delete(0, END)
             messagebox.showinfo(title="Success", message="Password saved successfully!")
 
-
 # ---------------------------- VIEW SAVED PASSWORDS ------------------------------- #
 def view_passwords():
+    """Displays each saved password entry with a 'Copy' button and scrollable window."""
     if os.path.exists("data.txt"):
         with open("data.txt", "r") as data_file:
-            content = data_file.read()
-        messagebox.showinfo(title="Saved Passwords", message=content if content else "No passwords saved yet.")
+            lines = data_file.readlines()
+
+        if lines:
+            # Create a new window to display saved passwords
+            passwords_window = Toplevel()
+            passwords_window.title("Saved Passwords")
+            passwords_window.geometry("400x300")
+
+            # Create a canvas for scrolling
+            canvas = Canvas(passwords_window)
+            scrollbar = Scrollbar(passwords_window, orient="vertical", command=canvas.yview)
+            scrollable_frame = Frame(canvas)
+
+            # Configure the scrollable frame
+            scrollable_frame.bind(
+                "<Configure>",
+                lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+            )
+            canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
+
+            # Pack the canvas and scrollbar
+            canvas.pack(side="left", fill="both", expand=True)
+            scrollbar.pack(side="right", fill="y")
+
+            # Display each password with a "Copy" button
+            for line in lines:
+                website, email, password = line.strip().split(" | ")
+
+                # Frame to hold each entry and its copy button
+                entry_frame = Frame(scrollable_frame)
+                entry_frame.pack(fill="x", pady=5)
+
+                # Labels to show website, email, and password
+                Label(entry_frame, text=f"Website: {website}").pack(anchor="w")
+                Label(entry_frame, text=f"Email: {email}").pack(anchor="w")
+                Label(entry_frame, text=f"Password: {password}").pack(anchor="w")
+
+                # Copy button for each password
+                copy_button = Button(entry_frame, text="Copy Password", command=lambda pwd=password: copy_to_clipboard(pwd))
+                copy_button.pack(anchor="e")
+
+                separator = Label(entry_frame, text="-" * 50)  # Divider for readability
+                separator.pack(fill="x")
+
+        else:
+            messagebox.showinfo(title="No Data", message="No passwords saved yet.")
     else:
         messagebox.showinfo(title="No Data", message="No passwords saved yet.")
 
+def copy_to_clipboard(password):
+    """Copies the given password to the clipboard."""
+    pyperclip.copy(password)
+    messagebox.showinfo("Copied", "Password copied to clipboard!")
 
 # ---------------------------- DELETE PASSWORD ------------------------------- #
-
 def delete_password():
+    reset_timer()
     if os.path.exists("data.txt"):
         with open("data.txt", "r") as data_file:
             lines = data_file.readlines()
@@ -135,9 +177,9 @@ def delete_password():
     else:
         messagebox.showinfo(title="No Data", message="No passwords saved yet.")
 
-
 # ---------------------------- SEARCH PASSWORD ------------------------------- #
 def search_password():
+    reset_timer()
     if os.path.exists("data.txt"):
         with open("data.txt", "r") as data_file:
             lines = data_file.readlines()
@@ -159,14 +201,13 @@ def search_password():
     else:
         messagebox.showinfo(title="No Data", message="No passwords saved yet.")
 
-
 # ---------------------------- TOGGLE PASSWORD VISIBILITY ------------------------------- #
 def toggle_password_visibility():
+    reset_timer()
     if show_password_var.get():
         password_entry.config(show="")
     else:
         password_entry.config(show="*")
-
 
 # ---------------------------- STRENGTH EVALUATION ------------------------------- #
 def evaluate_password_strength(password):
@@ -182,12 +223,11 @@ def evaluate_password_strength(password):
         return "Strong"
     return "Medium" if has_uppercase or has_lowercase or has_digit or has_special_char else "Weak"
 
-
 def evaluate_and_update_strength():
+    reset_timer()
     password = password_entry.get()
     strength = evaluate_password_strength(password)
     strength_label.config(text=f"Password Strength: {strength}")
-
 
 # ---------------------------- UI SETUP ------------------------------- #
 
@@ -195,29 +235,24 @@ window = Tk()
 window.title("Password Manager")
 window.config(padx=50, pady=50)
 
-# Hide the main window until login is successful
 window.withdraw()
-
-# Login before showing the main application
 window.after(0, login)
+timer = None
 
 canvas = Canvas(height=217, width=217)
 logo_img = PhotoImage(file="logo.png")
 canvas.create_image(100, 100, image=logo_img)
 canvas.grid(row=0, columnspan=3)
 
-# Labels
 website_label = Label(text="Website:")
 website_label.grid(row=1, column=0)
 email_label = Label(text="Email/Username:")
 email_label.grid(row=2, column=0)
 password_label = Label(text="Password:")
 password_label.grid(row=3, column=0)
-
 strength_label = Label(text="Password Strength:")
 strength_label.grid(row=4, column=0)
 
-# Entries
 website_entry = Entry(width=35)
 website_entry.grid(row=1, column=1, columnspan=2)
 website_entry.focus()
@@ -227,12 +262,10 @@ password_entry = Entry(width=25, show="*")
 password_entry.grid(row=3, column=2)
 password_entry.bind('<KeyRelease>', lambda event: evaluate_and_update_strength())
 
-# Checkbox to show/hide password
 show_password_var = BooleanVar()
 show_password_checkbox = Checkbutton(text="Show Password", variable=show_password_var, command=toggle_password_visibility)
 show_password_checkbox.grid(row=4, column=1)
 
-# Buttons
 generate_password_button = Button(text="Generate Password", command=generate_password)
 generate_password_button.grid(row=4, column=2)
 add_button = Button(text="Add", width=36, command=save)
@@ -247,4 +280,3 @@ exit_button = Button(text="Exit", width=36, command=window.quit)
 exit_button.grid(row=9, column=1, columnspan=2)
 
 window.mainloop()
-
