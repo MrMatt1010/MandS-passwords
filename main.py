@@ -11,6 +11,7 @@ PASSWORD = "test"
 # File to save username and password
 LOGIN_FILE = "up.txt"
 
+
 # ---------------------------- LOGIN FUNCTION ------------------------------- #
 def login():
     # Check if the login file exists; if not, create it with default credentials
@@ -18,17 +19,36 @@ def login():
         with open(LOGIN_FILE, "w") as file:
             file.write(f"{USERNAME}\n{PASSWORD}")
 
-    # Prompt user for login
-    entered_username = simpledialog.askstring("Login", "Enter username:")
-    entered_password = simpledialog.askstring("Login", "Enter password:", show="*")
+    # Set up the login window
+    login_window = Toplevel()
+    login_window.title("Login")
+    login_window.geometry("300x200")
 
-    # Verify credentials
-    if entered_username == USERNAME and entered_password == PASSWORD:
-        messagebox.showinfo("Login Success", "Welcome to the Password Manager!")
-        window.deiconify()  # Show the main window
-    else:
-        messagebox.showerror("Login Failed", "Invalid username or password.")
-        window.quit()
+    # Username entry
+    Label(login_window, text="Enter Username:").pack(pady=5)
+    entered_username = Entry(login_window, width=50)
+    entered_username.pack(pady=5)
+
+    # Password entry
+    Label(login_window, text="Enter Password:").pack(pady=5)
+    entered_password = Entry(login_window, width=50, show="*")
+    entered_password.pack(pady=5)
+
+    def submit_login():
+        if entered_username.get() == USERNAME and entered_password.get() == PASSWORD:
+            messagebox.showinfo("Login Success", "Welcome to the Password Manager!")
+            login_window.destroy()  # Close login window
+            window.deiconify()      # Show the main window
+        else:
+            messagebox.showerror("Login Failed", "Invalid username or password.")
+            login_window.quit()
+
+    # Login button
+    login_button = Button(login_window, text="Login", command=submit_login)
+    login_button.pack(pady=10)
+
+    login_window.mainloop()
+
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 def generate_password():
@@ -48,6 +68,7 @@ def generate_password():
     strength = evaluate_password_strength(password)
     strength_label.config(text=f"Password Strength: {strength}")
 
+
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save():
     website = website_entry.get()
@@ -65,6 +86,7 @@ def save():
                 password_entry.delete(0, END)
             messagebox.showinfo(title="Success", message="Password saved successfully!")
 
+
 # ---------------------------- VIEW SAVED PASSWORDS ------------------------------- #
 def view_passwords():
     if os.path.exists("data.txt"):
@@ -74,7 +96,9 @@ def view_passwords():
     else:
         messagebox.showinfo(title="No Data", message="No passwords saved yet.")
 
+
 # ---------------------------- DELETE PASSWORD ------------------------------- #
+
 def delete_password():
     if os.path.exists("data.txt"):
         with open("data.txt", "r") as data_file:
@@ -100,6 +124,7 @@ def delete_password():
     else:
         messagebox.showinfo(title="No Data", message="No passwords saved yet.")
 
+
 # ---------------------------- SEARCH PASSWORD ------------------------------- #
 def search_password():
     if os.path.exists("data.txt"):
@@ -123,12 +148,14 @@ def search_password():
     else:
         messagebox.showinfo(title="No Data", message="No passwords saved yet.")
 
+
 # ---------------------------- TOGGLE PASSWORD VISIBILITY ------------------------------- #
 def toggle_password_visibility():
     if show_password_var.get():
         password_entry.config(show="")
     else:
         password_entry.config(show="*")
+
 
 # ---------------------------- STRENGTH EVALUATION ------------------------------- #
 def evaluate_password_strength(password):
@@ -144,10 +171,12 @@ def evaluate_password_strength(password):
         return "Strong"
     return "Medium" if has_uppercase or has_lowercase or has_digit or has_special_char else "Weak"
 
+
 def evaluate_and_update_strength():
     password = password_entry.get()
     strength = evaluate_password_strength(password)
     strength_label.config(text=f"Password Strength: {strength}")
+
 
 # ---------------------------- UI SETUP ------------------------------- #
 
