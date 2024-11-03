@@ -10,7 +10,18 @@ PASSWORD = "test"
 
 # File to save username and password
 LOGIN_FILE = "up.txt"
+TIMEOUT_SECONDS = 300  # 5 minutes in seconds
 
+# ---------------------------- TIMER FUNCTION ------------------------------- #
+def reset_timer():
+    global timer
+    if timer:
+        window.after_cancel(timer)
+    timer = window.after(TIMEOUT_SECONDS * 1000, timeout)
+
+def timeout():
+    messagebox.showinfo("Session Timeout", "The session has timed out due to inactivity.")
+    window.destroy()  # Completely close the application
 
 # ---------------------------- LOGIN FUNCTION ------------------------------- #
 def login():
